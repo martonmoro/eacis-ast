@@ -18,7 +18,7 @@ class EmotionWebSocketHandler:
     def __init__(self):
         """Initialize AI scene service."""
         # Choose AI provider: blip2_local (default, free) or gpt4_vision (requires API key)
-        provider_name = os.getenv("SCENE_PROVIDER", SceneAnalysisProvider.GPT4_VISION)
+        provider_name = os.getenv("SCENE_PROVIDER", SceneAnalysisProvider.GPT4O_MINI)
         provider = SceneAnalysisProvider(provider_name)
         
         self.scene_service = get_scene_service(provider=provider)

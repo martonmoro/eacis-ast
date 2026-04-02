@@ -17,7 +17,7 @@ load_dotenv()
 
 class SceneAnalysisProvider(str, Enum):
     """Available scene analysis providers."""
-    O3_MINI = "o3-mini"
+    GPT4O_MINI = "gpt4o_mini"  # Cheaper vision model
     GPT4_VISION = "gpt4_vision"
     BLIP2_LOCAL = "blip2_local"
     GEMINI_VISION = "gemini_vision"
@@ -42,24 +42,26 @@ class ClassroomSceneService:
         
         # # Initialize based on provider
         if provider == SceneAnalysisProvider.GPT4_VISION:
-            self._init_gpt4_vision()
+            self._init_openai_vision("GPT-4 Vision")
+        elif provider == SceneAnalysisProvider.GPT4O_MINI:
+            self._init_openai_vision("GPT-4o-mini")
         elif provider == SceneAnalysisProvider.BLIP2_LOCAL:
             self._init_blip2_local()
         elif provider == SceneAnalysisProvider.GEMINI_VISION:
             self._init_gemini_vision()
     
-    def _init_gpt4_vision(self):
-        """Initialize GPT-4 Vision API."""
+    def _init_openai_vision(self, model_name: str):
+        """Initialize OpenAI Vision API (shared for GPT-4 and GPT-4o-mini)."""
         self.api_key = os.getenv("OPENAI_API_KEY")
         if not self.api_key:
-            print("❌ ERROR: OPENAI_API_KEY not found in environment")
+            print(f"❌ ERROR: OPENAI_API_KEY not found in environment")
             print("   Set it with: export OPENAI_API_KEY='your-key-here'")
-            print("   GPT-4 Vision will NOT work without a valid API key")
+            print(f"   {model_name} will NOT work without a valid API key")
         else:
             # Validate key format
             if not self.api_key.startswith('sk-'):
                 print("⚠️  Warning: API key format looks invalid (should start with 'sk-')")
-            print(f"✅ OpenAI API key loaded (length: {len(self.api_key)} chars)")
+            print(f"✅ OpenAI API key loaded for {model_name} (length: {len(self.api_key)} chars)")
     
     def _init_blip2_local(self):
         """Initialize local BLIP-2 model optimized for Apple Silicon."""
@@ -109,31 +111,10 @@ class ClassroomSceneService:
         if not self.api_key:
             print("⚠️  Warning: GOOGLE_API_KEY not found in environment")
     
-    def analyze_scene_gpt4(self, frame: np.ndarray) -> Dict:
-        """
-        Analyze classroom scene using GPT-4 Vision.
-        
-        Args:
-            frame: OpenCV image array (BGR format)
-            
-        Returns:
-            Dict with scene analysis
-        """
-        if not self.api_key:
-            return self._get_fallback_response()
-        
-        try:
-            import requests
-            from PIL import Image
-            import io
-            
-            # Convert frame to base64
-            _, buffer = cv2.imencode('.jpg', frame)
-            image_base64 = base64.b64encode(buffer).decode('utf-8')
-            
-            # Prepare the prompt
-            prompt = """
-                You are an AI vision analyst specializing in classroom behavior analytics. Your task is to analyze the image and output only a valid JSON object.
+    def _get_classroom_analysis_prompt(self) -> str:
+        """Get the shared prompt for classroom scene analysis."""
+        return """
+You are an AI vision analyst specializing in classroom behavior analytics. Your task is to analyze the image and output only a valid JSON object.
 Never use Markdown.
 Never use code fences.
 Never include explanatory text before or after the JSON.
@@ -167,18 +148,41 @@ Do not include markdown formatting.
 Do not include any additional keys.
 
 If you cannot comply, output an empty JSON object {}"""
-
-            # Call GPT-4 Vision API
+    
+    def _analyze_with_openai_vision(self, frame: np.ndarray, model: str, model_display_name: str) -> Dict:
+        """Shared method for OpenAI vision analysis (GPT-4 and GPT-4o-mini).
+        
+        Args:
+            frame: OpenCV image array (BGR format)
+            model: Model identifier (e.g., "gpt-4o", "gpt-4o-mini")
+            model_display_name: Display name for logging
+            
+        Returns:
+            Dict with scene analysis
+        """
+        if not self.api_key:
+            return self._get_fallback_response()
+        
+        try:
+            import requests
+            import json
+            
+            # Convert frame to base64
+            _, buffer = cv2.imencode('.jpg', frame)
+            image_base64 = base64.b64encode(buffer).decode('utf-8')
+            
+            # Get shared prompt
+            prompt = self._get_classroom_analysis_prompt()
+            
+            # Prepare headers
             headers = {
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {self.api_key}"
             }
-
-
+            
+            # Prepare payload
             payload = {
-                # "model": SceneAnalysisProvider.O3_MINI,
-                "model": "gpt-4o",
-                # "model": "gpt-4-vision-preview",
+                "model": model,
                 "messages": [
                     {
                         "role": "user",
@@ -206,7 +210,7 @@ If you cannot comply, output an empty JSON object {}"""
                 timeout=30
             )
 
-            print(f"GPT-4 Vision API response status: {response.status_code}")
+            print(f"{model_display_name} API response status: {response.status_code}")
 
             if response.status_code == 200:
                 result = response.json()
@@ -214,16 +218,12 @@ If you cannot comply, output an empty JSON object {}"""
                 
                 # Try to parse as JSON
                 try:
-                    import json
                     analysis = json.loads(content)
-
-                    print('✅ GPT-4 Vision analysis successful', analysis)
-
+                    print(f'✅ {model_display_name} analysis successful', analysis)
                     return analysis
                 except:
                     # If not JSON, create structured response
-                    print("❌ GPT-4 Vision response not valid JSON, using fallback structure")
-
+                    print(f"❌ {model_display_name} response not valid JSON, using fallback structure")
                     return {
                         "scene_description": content[:200],
                         "activity": "classroom_activity",
@@ -234,15 +234,23 @@ If you cannot comply, output an empty JSON object {}"""
                         "teacher_recommendation": "Monitor progress"
                     }
             else:
-                print(f"❌ GPT-4 API Error: {response.status_code}")
+                print(f"❌ {model_display_name} API Error: {response.status_code}")
                 print(f"   Response: {response.text[:200]}")
                 return self._get_fallback_response()
                 
         except Exception as e:
             import traceback
-            print(f"❌ Error in GPT-4 Vision analysis: {str(e)}")
+            print(f"❌ Error in {model_display_name} analysis: {str(e)}")
             print(f"   Full traceback: {traceback.format_exc()[:500]}")
             return self._get_fallback_response()
+    
+    def analyze_scene_gpt4(self, frame: np.ndarray) -> Dict:
+        """Analyze classroom scene using GPT-4 Vision."""
+        return self._analyze_with_openai_vision(frame, "gpt-4o", "GPT-4 Vision")
+    
+    def analyze_scene_gpt4o_mini(self, frame: np.ndarray) -> Dict:
+        """Analyze classroom scene using GPT-4o-mini (cheaper vision model)."""
+        return self._analyze_with_openai_vision(frame, "gpt-4o-mini", "GPT-4o-mini")
     
     def analyze_scene_blip2(self, frame: np.ndarray) -> Dict:
         """
@@ -337,8 +345,10 @@ If you cannot comply, output an empty JSON object {}"""
         Returns:
             Dict with scene analysis
         """
-        if self.provider == SceneAnalysisProvider.GPT4_VISION or self.provider == SceneAnalysisProvider.O3_MINI:
+        if self.provider == SceneAnalysisProvider.GPT4_VISION:
             return self.analyze_scene_gpt4(frame)
+        elif self.provider == SceneAnalysisProvider.GPT4O_MINI:
+            return self.analyze_scene_gpt4o_mini(frame)
         elif self.provider == SceneAnalysisProvider.BLIP2_LOCAL:
             return self.analyze_scene_blip2(frame)
         elif self.provider == SceneAnalysisProvider.GEMINI_VISION:
