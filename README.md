@@ -1,21 +1,22 @@
 # Emotional AI Classroom Insight System (EACIS) - MVP
 
-A real-time emotion detection and engagement tracking system for classroom environments.
+A real-time AI-powered classroom scene understanding and engagement tracking system.
 
 ## 🎯 Overview
 
-EACIS uses AI-powered facial emotion recognition to monitor student engagement in real-time. The system captures webcam video, analyzes facial expressions, and provides live engagement metrics through an intuitive dashboard.
+EACIS uses advanced vision-language AI models to understand classroom activities in real-time. The system captures webcam video, analyzes scenes with AI, and provides natural language insights and engagement metrics through an intuitive dashboard.
 
 ## ✨ Features
 
-- **Real-time Emotion Detection**: Uses DeepFace AI with MTCNN face detection to detect 7 emotions (happy, sad, angry, surprise, fear, disgust, neutral)
-- **Advanced Image Processing**: Histogram equalization for better detection across all skin tones
-- **Engagement Scoring**: Automatically maps emotions to engagement levels with nuanced scoring
+- **AI Scene Understanding**: Uses GPT-4 Vision or BLIP-2 to analyze classroom activities with natural language descriptions
+- **Natural Language Insights**: AI generates human-readable descriptions of student activities and behaviors
+- **Activity Classification**: Automatically identifies activities (note_taking, group_discussion, lecture_listening, etc.)
+- **Engagement Scoring**: AI-driven engagement assessment based on visual scene analysis
 - **Live Dashboard**: Beautiful, responsive UI built with React and shadcn/ui
 - **WebRTC Video Capture**: Direct browser-to-server video streaming
 - **Privacy-First**: No images stored, all processing done in memory
 - **Real-time Updates**: WebSocket connection for instant feedback
-- **Confidence Filtering**: Only displays high-confidence predictions (>35%)
+- **Flexible AI Providers**: Support for GPT-4 Vision, GPT-4o-mini, or local BLIP-2 models
 
 ## 🏗️ Architecture
 
@@ -29,9 +30,9 @@ EACIS uses AI-powered facial emotion recognition to monitor student engagement i
 
 ### Backend
 - **Framework**: FastAPI (Python 3.11+)
-- **AI Model**: DeepFace (with TensorFlow)
-- **Face Detection**: MTCNN (Multi-task Cascaded Convolutional Networks)
-- **Computer Vision**: OpenCV with histogram equalization
+- **AI Models**: GPT-4 Vision, GPT-4o-mini, or BLIP-2 (vision-language models)
+- **Scene Analysis**: Natural language understanding of classroom activities
+- **Computer Vision**: OpenCV for frame processing
 - **Communication**: WebSocket
 - **Async**: Python asyncio
 
@@ -63,10 +64,9 @@ SOFT TECH 1/
     │   ├── ws/
     │   │   └── emotion_ws.py     # WebSocket handler
     │   ├── services/
-    │   │   └── emotion_service.py # DeepFace integration
+    │   │   └── scene_service.py  # AI scene understanding
     │   └── utils/
-    │       ├── frame_utils.py
-    │       └── emotion_mapping.py
+    │       └── frame_utils.py    # Frame processing
     └── requirements.txt
 ```
 
@@ -105,7 +105,17 @@ SOFT TECH 1/
    pip install -r requirements.txt
    ```
 
-5. **Run the backend server**:
+5. **Configure AI Provider** (optional):
+   ```bash
+   # For GPT-4 Vision (requires API key)
+   export OPENAI_API_KEY="your-api-key"
+   export SCENE_PROVIDER="gpt4_vision"  # or "gpt4o_mini" (cheaper)
+   
+   # For local BLIP-2 (free, requires GPU)
+   export SCENE_PROVIDER="blip2_local"
+   ```
+
+6. **Run the backend server**:
    ```bash
    uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
    ```
@@ -138,17 +148,18 @@ SOFT TECH 1/
 3. Position yourself in front of the camera
 4. Watch real-time emotion detection and engagement tracking
 
-## 📊 Emotion-to-Engagement Mapping
+## 📊 AI Scene Analysis
 
-| Emotion  | Engagement Score | Interpretation |
-|----------|------------------|----------------|
-| Happy    | 1.0              | Highly engaged and positive |
-| Surprise | 0.85             | Engaged and curious |
-| Neutral  | 0.6              | Moderately engaged |
-| Sad      | 0.4              | Low engagement |
-| Angry    | 0.3              | Frustrated but trying |
-| Fear     | 0.25             | Anxious or confused |
-| Disgust  | 0.2              | Disengaged |
+The system uses AI to analyze classroom scenes and provides:
+
+| Output | Description | Example |
+|--------|-------------|----------|
+| Scene Description | Natural language description | "Student is actively taking notes during lecture" |
+| Activity | Classified activity type | note_taking, group_discussion, lecture_listening |
+| Engagement Level | Qualitative assessment | very_high, high, medium, low, very_low |
+| Engagement Score | Numerical score (0.0-1.0) | 0.85 |
+| Behavioral Insights | List of observations | ["Active learning behavior", "Good attention"] |
+| Recommendation | Teacher action suggestion | "No intervention needed" |
 
 ## 🔧 Configuration
 
@@ -202,20 +213,17 @@ The build output will be in `frontend/dist/`
 
 ### Backend Issues
 
-**AI model downloads**:
-- First run will download AI models (~100-150MB total)
-  - DeepFace emotion model (~100MB)
-  - MTCNN face detection model (~5MB)
-- Requires internet connection
-- Models cached in `~/.deepface/` and `~/.mtcnn/`
+**AI model setup**:
+- **GPT-4 Vision**: Requires OPENAI_API_KEY environment variable
+- **BLIP-2 Local**: First run will download model (~15GB, one-time)
+- Requires internet connection for initial download
+- Models cached in `~/.cache/huggingface/`
 
-**No face detected or low accuracy**:
-- Ensure good lighting (front-facing light source)
-- Face should be clearly visible and centered
-- Check webcam angle (eye level is best)
-- For darker skin tones: improve lighting, avoid dark backgrounds
-- Try adjusting confidence threshold in `emotion_service.py`
-- See `EMOTION_DETECTION_OPTIMIZATION.md` for detailed tips
+**No scene analysis**:
+- Check AI provider is configured correctly
+- Verify API key if using GPT-4 Vision
+- Ensure sufficient disk space for BLIP-2 (~15GB)
+- Check backend logs for specific errors
 
 ### Frontend Issues
 
@@ -245,10 +253,18 @@ The build output will be in `frontend/dist/`
 **Server responds**:
 ```json
 {
-  "emotion": "happy",
-  "confidence": 0.92,
-  "engagement": 1.0,
-  "timestamp": 1730707200
+  "scene_description": "Student is actively taking notes during lecture",
+  "activity": "note_taking",
+  "engagement_level": "high",
+  "engagement": 0.85,
+  "student_count": 1,
+  "behavioral_insights": [
+    "Active learning behavior",
+    "Good attention management"
+  ],
+  "teacher_recommendation": "No intervention needed",
+  "timestamp": 1730707200,
+  "provider": "gpt4_vision"
 }
 ```
 
@@ -260,10 +276,10 @@ The build output will be in `frontend/dist/`
 ## 🤝 Contributing
 
 This is an MVP project. Recent improvements:
-- ✅ MTCNN face detection for better accuracy
-- ✅ Histogram equalization for diverse skin tones
-- ✅ Confidence threshold filtering
-- ✅ Refined engagement scoring
+- ✅ AI-powered scene understanding (GPT-4 Vision, GPT-4o-mini, BLIP-2)
+- ✅ Natural language activity descriptions
+- ✅ Flexible AI provider architecture
+- ✅ Behavioral insights and recommendations
 
 Future enhancements could include:
 - Multi-face detection (classroom mode)
@@ -272,6 +288,7 @@ Future enhancements could include:
 - Real-time engagement alerts
 - Teacher dashboard
 - Mobile app
+- Additional AI providers (Gemini, Claude Vision)
 
 ## 📄 License
 

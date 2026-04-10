@@ -55,13 +55,26 @@ Before starting, ensure you have:
    - Server running at: `http://0.0.0.0:8000`
    - No error messages
 
-   📝 **Note**: On first run, the system will download AI models (~100-150MB total):
-   - DeepFace emotion model (~100MB)
-   - MTCNN face detection model (~5MB)
+   📝 **Note**: On first run, the system will download AI models depending on your provider:
+   - **BLIP-2 Local** (default): ~15GB model download (one-time)
+   - **GPT-4 Vision**: No download, requires API key
    
    This is normal and happens only once. Models are cached for future use.
 
-7. **Verify backend is running**:
+7. **Configure AI Provider** (optional):
+   ```bash
+   # For GPT-4 Vision (requires API key)
+   export OPENAI_API_KEY="your-api-key-here"
+   export SCENE_PROVIDER="gpt4_vision"
+   
+   # For GPT-4o-mini (cheaper)
+   export SCENE_PROVIDER="gpt4o_mini"
+   
+   # For BLIP-2 Local (default, free)
+   export SCENE_PROVIDER="blip2_local"
+   ```
+
+8. **Verify backend is running**:
    
    Open a browser and visit: `http://localhost:8000`
    
@@ -133,8 +146,10 @@ Before starting, ensure you have:
 
 4. **Watch the magic happen** ✨:
    - Your webcam feed appears in real-time
-   - Detected emotion is displayed with confidence score
+   - AI analyzes the scene every few frames
+   - Natural language description of activity is displayed
    - Engagement score is calculated and shown
+   - Behavioral insights are provided
    - Live chart tracks your engagement over time
 
 ## 🔍 Troubleshooting
@@ -158,13 +173,13 @@ Then update frontend WebSocket URL in `frontend/src/pages/Dashboard.tsx`.
 **Problem**: Model downloads fail
 **Solution**: 
 - Check internet connection
-- Try again (downloads can be flaky)
-- Manual download:
+- For BLIP-2: Ensure ~15GB free disk space
+- For GPT-4 Vision: Verify OPENAI_API_KEY is set
+- Try switching providers:
   ```bash
-  python3 -c "from deepface import DeepFace; DeepFace.build_model('Emotion')"
-  python3 -c "from mtcnn import MTCNN; MTCNN()"
+  export SCENE_PROVIDER="gpt4o_mini"  # Requires API key but no download
   ```
-- Models stored in `~/.deepface/` and `~/.mtcnn/`
+- Models stored in `~/.cache/huggingface/` (BLIP-2)
 
 ### Frontend Issues
 
@@ -194,17 +209,19 @@ npm install
 1. Check browser console for errors (F12)
 2. Ensure backend shows incoming connections
 3. Verify WebSocket is connected (green badge)
-4. Check if face is visible in camera
+4. Check AI provider is configured
+5. Look for AI processing messages in backend logs
 
-**Problem**: Low confidence scores or poor detection
+**Problem**: Slow scene analysis
 **Solution**:
-- **Lighting** (most important): Add front-facing light, avoid backlighting
-- Face camera directly and center yourself in frame
-- Remove obstructions (hair, hands, masks)
-- Adjust camera to eye level
-- For darker skin tones: Improve lighting, avoid dark backgrounds
-- Hold expressions for 1-2 seconds
-- See **EMOTION_DETECTION_OPTIMIZATION.md** for detailed guidance
+- **BLIP-2**: Expected (~5-10 seconds per analysis)
+  - Solution: Reduce analysis frequency or switch to GPT-4
+- **GPT-4 Vision**: Should be fast (~2-3 seconds)
+  - Check API key and internet connection
+- Adjust analysis interval:
+  ```bash
+  export AI_SCENE_INTERVAL="10"  # Analyze every 10 frames instead of 5
+  ```
 
 ## 📊 Expected Behavior
 
@@ -212,17 +229,20 @@ npm install
 
 1. **Camera starts**: Black screen → Your video feed appears
 2. **WebSocket connects**: Badge shows "Connected" (green)
-3. **First detection**: Takes 2-3 seconds
-4. **Continuous updates**: Every 500ms (2 times per second)
-5. **Emotion changes**: Updates reflect in real-time
-6. **Chart grows**: New data points added continuously
+3. **First analysis**: Takes 2-10 seconds (depending on AI provider)
+4. **Scene descriptions**: Natural language descriptions appear
+5. **Activity updates**: Classification shown (note_taking, discussion, etc.)
+6. **Engagement tracking**: Score and insights update
+7. **Chart grows**: New data points added continuously
 
 ### Performance
 
-- **Frame processing**: ~500ms per frame
+- **Frame processing**: Every 5 frames (configurable)
+- **BLIP-2 analysis**: ~5-10 seconds per scene
+- **GPT-4 Vision**: ~2-3 seconds per scene
 - **UI updates**: Real-time (no lag)
-- **Memory usage**: ~300-500MB (backend), ~100-200MB (frontend)
-- **CPU usage**: Moderate during active detection
+- **Memory usage**: ~500MB-1GB (backend), ~100-200MB (frontend)
+- **CPU usage**: Moderate during active analysis
 
 ## 🛑 Stopping the Application
 
@@ -254,23 +274,25 @@ npm run dev
 
 ### Basic Test Sequence
 
-1. **Start with neutral face** → Should detect "neutral" (0.7 engagement)
-2. **Smile widely** → Should detect "happy" (1.0 engagement)
-3. **Look surprised** → Should detect "surprise" (0.9 engagement)
-4. **Frown** → Should detect "sad" (0.3 engagement)
+1. **Sit normally** → Should detect activity like "lecture_listening" or "neutral"
+2. **Pretend to write** → Should detect "note_taking" with engaged description
+3. **Look away from camera** → May detect "distracted" with lower engagement
+4. **Lean forward attentively** → Should increase engagement score
 
 ### What to Look For
 
 ✅ **Good signs**:
-- Emotion changes when you change expression
-- Confidence scores > 0.6
-- Engagement chart shows variation
+- Scene descriptions change when you change activity
+- Activity classification is accurate
+- Engagement scores make sense
+- Behavioral insights are relevant
 - No connection errors
 
 ⚠️ **Warning signs**:
-- Always showing "neutral" → Lighting issue
-- Very low confidence (< 0.3) → Face not detected properly
+- No scene descriptions appearing → AI provider issue
+- Very slow analysis → Check AI provider configuration
 - Frequent disconnections → Backend/network issue
+- Generic/fallback responses → API key or model loading issue
 
 ## 🎓 Next Steps
 
@@ -301,8 +323,10 @@ Your system is working correctly if:
 - [ ] Camera permission granted
 - [ ] Webcam feed visible
 - [ ] "Connected" badge is green
-- [ ] Emotion detection updates in real-time
-- [ ] Engagement score changes with expressions
+- [ ] Scene descriptions appear (may take 5-10 seconds)
+- [ ] Activity classification updates
+- [ ] Engagement score changes appropriately
+- [ ] Behavioral insights are relevant
 - [ ] Chart shows growing data points
 - [ ] No errors in console or terminal
 

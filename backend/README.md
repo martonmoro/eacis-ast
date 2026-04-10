@@ -1,16 +1,15 @@
 # EACIS Backend
 
-FastAPI backend for the Emotional AI Classroom Insight System.
+FastAPI backend for the Emotional AI Classroom Insight System with AI-powered scene understanding.
 
 ## Features
 
-- Real-time emotion detection using DeepFace
-- MTCNN face detection for better accuracy with diverse skin tones
-- Image preprocessing with histogram equalization
-- Confidence threshold filtering (35% minimum)
+- AI-powered classroom scene understanding
+- Support for multiple AI providers (GPT-4 Vision, GPT-4o-mini, BLIP-2)
+- Natural language activity descriptions
 - WebSocket support for live streaming
 - Optimized frame processing with OpenCV
-- Nuanced engagement score calculation
+- AI-driven engagement score calculation
 - Privacy-first design (no image storage)
 
 ## Installation
@@ -24,6 +23,16 @@ source venv/bin/activate  # macOS/Linux
 2. Install dependencies:
 ```bash
 pip install -r requirements.txt
+```
+
+3. Configure AI provider (optional):
+```bash
+# For GPT-4 Vision
+export OPENAI_API_KEY="your-api-key"
+export SCENE_PROVIDER="gpt4_vision"  # or "gpt4o_mini"
+
+# For BLIP-2 (default, free)
+export SCENE_PROVIDER="blip2_local"
 ```
 
 ## Running
@@ -49,10 +58,9 @@ app/
 ├── ws/
 │   └── emotion_ws.py      # WebSocket handler
 ├── services/
-│   └── emotion_service.py # DeepFace integration
+│   └── scene_service.py   # AI scene understanding
 └── utils/
-    ├── frame_utils.py     # Frame processing utilities
-    └── emotion_mapping.py # Emotion-to-engagement mapping
+    └── frame_utils.py     # Frame processing utilities
 ```
 
 ## Configuration
@@ -62,11 +70,15 @@ Edit `app/main.py` to change:
 - CORS origins
 - WebSocket settings
 
+Set environment variables:
+- `OPENAI_API_KEY`: Required for GPT-4 Vision
+- `SCENE_PROVIDER`: Choose AI provider (gpt4_vision, gpt4o_mini, blip2_local)
+- `AI_SCENE_INTERVAL`: Analysis frequency (default: 5 frames)
+
 ## Notes
 
-- First run will download AI models:
-  - DeepFace emotion model (~100MB)
-  - MTCNN face detection model (~5MB)
-- Models are cached in `~/.deepface/` and `~/.mtcnn/`
+- First run with BLIP-2 will download model (~15GB)
+- GPT-4 Vision requires API key and internet connection
+- Models are cached appropriately per provider
 - Requires Python 3.11+
-- For optimization tips, see `../EMOTION_DETECTION_OPTIMIZATION.md`
+- See `../AI_ONLY_README.md` for AI-specific guidance
