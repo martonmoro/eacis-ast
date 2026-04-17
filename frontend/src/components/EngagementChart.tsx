@@ -126,8 +126,8 @@ export const EngagementChart: React.FC<EngagementChartProps> = ({
                         <div className="bg-white p-3 border rounded shadow-lg">
                           <p className="font-semibold">{data.time}</p>
                           <p className="text-sm">
-                            Emotion:{' '}
-                            <span className="font-medium">{data.emotion}</span>
+                            Level:{' '}
+                            <span className="font-medium">{data.label}</span>
                           </p>
                           <p className="text-sm">
                             Engagement:{' '}

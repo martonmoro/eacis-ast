@@ -8,7 +8,7 @@ EACIS uses advanced vision-language AI models to understand classroom activities
 
 ## ✨ Features
 
-- **AI Scene Understanding**: Uses GPT-4 Vision or BLIP-2 to analyze classroom activities with natural language descriptions
+- **AI Scene Understanding**: Uses GPT Vision capable models or BLIP-2 to analyze classroom activities with natural language descriptions
 - **Natural Language Insights**: AI generates human-readable descriptions of student activities and behaviors
 - **Activity Classification**: Automatically identifies activities (note_taking, group_discussion, lecture_listening, etc.)
 - **Engagement Scoring**: AI-driven engagement assessment based on visual scene analysis
@@ -296,7 +296,9 @@ This project is for educational purposes as part of MSc Software Technology cour
 
 ## 👥 Authors
 
-Built for ELTE MSc Software Technology 1
+Emanuel Nzinga Maimona
+ELTE MSc 
+Software Technology I
 
 ---
 

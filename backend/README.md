@@ -81,4 +81,3 @@ Set environment variables:
 - GPT-4 Vision requires API key and internet connection
 - Models are cached appropriately per provider
 - Requires Python 3.11+
-- See `../AI_ONLY_README.md` for AI-specific guidance

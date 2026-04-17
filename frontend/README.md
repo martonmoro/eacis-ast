@@ -7,9 +7,8 @@ React + TypeScript frontend for the Emotional AI Classroom Insight System.
 - Real-time webcam capture with WebRTC
 - Live emotion display with confidence scores
 - Engagement tracking charts
-- Beautiful UI with shadcn/ui and TailwindCSS
+- UI with shadcn/ui and TailwindCSS
 - WebSocket communication with backend
-- Responsive design
 
 ## Installation
 
