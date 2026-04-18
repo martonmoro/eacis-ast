@@ -1,6 +1,8 @@
 # Emotional AI Classroom Insight System (EACIS) - MVP
 
 A real-time AI-powered classroom scene understanding and engagement tracking system.
+[Link to the Presentation
+](https://www.canva.com/design/DAG6iwRcjmk/IpbGY2mvAwHFVwpTUHTr3g/edit?utm_content=DAG6iwRcjmk&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
 ## 🎯 Overview
 
