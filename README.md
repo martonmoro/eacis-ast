@@ -203,41 +203,6 @@ npm run build
 
 The build output will be in `frontend/dist/`
 
-## 🔒 Privacy & Security
-
-- ✅ No images are stored on disk
-- ✅ All processing happens in memory
-- ✅ Raw frames are never logged
-- ✅ CORS configured for local development
-- ⚠️ For production, update CORS settings in `backend/app/main.py`
-
-## 🐛 Troubleshooting
-
-### Backend Issues
-
-**AI model setup**:
-- **GPT-4 Vision**: Requires OPENAI_API_KEY environment variable
-- **BLIP-2 Local**: First run will download model (~15GB, one-time)
-- Requires internet connection for initial download
-- Models cached in `~/.cache/huggingface/`
-
-**No scene analysis**:
-- Check AI provider is configured correctly
-- Verify API key if using GPT-4 Vision
-- Ensure sufficient disk space for BLIP-2 (~15GB)
-- Check backend logs for specific errors
-
-### Frontend Issues
-
-**Camera permission denied**:
-- Check browser permissions
-- Allow camera access when prompted
-- Refresh page after granting permission
-
-**WebSocket connection failed**:
-- Ensure backend is running on port 8000
-- Check firewall settings
-- Verify WebSocket URL in Dashboard.tsx
 
 ## 📝 API Documentation
 
@@ -277,19 +242,11 @@ The build output will be in `frontend/dist/`
 
 ## 🤝 Contributing
 
-This is an MVP project. Recent improvements:
-- ✅ AI-powered scene understanding (GPT-4 Vision, GPT-4o-mini, BLIP-2)
-- ✅ Natural language activity descriptions
-- ✅ Flexible AI provider architecture
-- ✅ Behavioral insights and recommendations
-
 Future enhancements could include:
-- Multi-face detection (classroom mode)
 - Session analytics and reports
 - Historical data storage
 - Real-time engagement alerts
 - Teacher dashboard
-- Mobile app
 - Additional AI providers (Gemini, Claude Vision)
 
 ## 📄 License
