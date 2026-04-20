@@ -36,7 +36,6 @@ EACIS uses advanced vision-language AI models to understand classroom activities
 - **Scene Analysis**: Natural language understanding of classroom activities
 - **Computer Vision**: OpenCV for frame processing
 - **Communication**: WebSocket
-- **Async**: Python asyncio
 
 ## 📁 Project Structure
 
