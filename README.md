@@ -4,9 +4,13 @@ A real-time AI-powered classroom scene understanding and engagement tracking sys
 [Link to the Presentation
 ](https://www.canva.com/design/DAG6iwRcjmk/IpbGY2mvAwHFVwpTUHTr3g/edit?utm_content=DAG6iwRcjmk&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
+## 💡 Motivation
+
+Understanding how students engage collectively during classroom activities provides educators with critical insights into the learning process. This awareness enables continuous improvement of teaching methodologies and helps students develop more effective learning strategies, ultimately leading to better educational outcomes.
+
 ## 🎯 Overview
 
-EACIS uses advanced vision-language AI models to understand classroom activities in real-time. The system captures webcam video, analyzes scenes with AI, and provides natural language insights and engagement metrics through an intuitive dashboard.
+EACIS uses advanced vision-language AI models to understand classroom activities in real-time. The system captures video, analyzes scenes with AI, and provides natural language insights and engagement metrics through an intuitive dashboard.
 
 ## ✨ Features
 
@@ -21,6 +25,17 @@ EACIS uses advanced vision-language AI models to understand classroom activities
 - **Flexible AI Providers**: Support for GPT-4 Vision, GPT-4o-mini, or local BLIP-2 models
 
 ## 🏗️ Architecture
+
+![EACIS System Architecture](architecture.png)
+
+### System Flow
+
+1. **Video Frames** → Web client captures video via webcam and sends frames to backend via WebSocket
+2. **Frame Processing** → Backend processes every Nth frame to optimize performance
+3. **AI Analysis** → Vision-Language Models (GPT-4 Vision/BLIP-2) analyze scenes and generate insights
+4. **Results Delivery** → AI analysis results (scene description, activity, engagement) sent back to client via WebSocket
+
+### Components
 
 ### Frontend
 - **Framework**: React 18 + TypeScript
