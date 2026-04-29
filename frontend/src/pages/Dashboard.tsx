@@ -14,7 +14,7 @@ import {
   EmotionWebSocket,
   SceneAnalysisResponse,
 } from '@/lib/websocket';
-import { AlertCircle, Wifi, WifiOff } from 'lucide-react';
+import { AlertCircle, Wifi, WifiOff, Activity } from 'lucide-react';
 
 interface DataPoint {
   timestamp: number;
@@ -32,6 +32,7 @@ export const Dashboard = () => {
   );
   const [engagementData, setEngagementData] = useState<DataPoint[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   /**
    * Handle incoming scene analysis from WebSocket
@@ -46,6 +47,7 @@ export const Dashboard = () => {
 
     setError(null);
     setCurrentAnalysis(data);
+    setLastUpdated(new Date());
 
     // Add to engagement data history (only for full analyses, not processing status)
     if (data.status !== 'processing') {
@@ -111,24 +113,37 @@ export const Dashboard = () => {
   }, [wsClient, handleSceneData, handleError, handleConnectionChange]);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900">
-              AI Classroom Insight System
-            </h1>
-            <p className="text-gray-600 mt-2">
-              AI-powered scene analysis from webcam or uploaded video
-            </p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Top nav bar */}
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-100 rounded-lg">
+              <Activity className="w-6 h-6 text-purple-600" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900 leading-tight">
+                AI Classroom Insight System
+              </h1>
+              <p className="text-xs text-gray-500">
+                {lastUpdated
+                  ? `Last updated ${lastUpdated.toLocaleTimeString()}`
+                  : 'AI-powered scene analysis from webcam or uploaded video'}
+              </p>
+            </div>
           </div>
           <Badge
             variant={isConnected ? 'default' : 'destructive'}
-            className="flex items-center gap-2 px-4 py-2"
+            className={`flex items-center gap-2 px-4 py-2 text-sm transition-all duration-300 ${
+              isConnected ? 'bg-emerald-500 hover:bg-emerald-600' : ''
+            }`}
           >
             {isConnected ? (
               <>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+                </span>
                 <Wifi className="w-4 h-4" />
                 Connected
               </>
@@ -140,10 +155,13 @@ export const Dashboard = () => {
             )}
           </Badge>
         </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-6 py-6 space-y-6">
 
         {/* Error Alert */}
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="animate-in slide-in-from-top-2 duration-300">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
@@ -174,21 +192,23 @@ export const Dashboard = () => {
               nextAnalysisIn={currentAnalysis.next_analysis_in}
             />
           ) : (
-            <div className="flex items-center justify-center bg-white rounded-lg border p-6">
-              <p className="text-gray-500 text-center">
-                Waiting for AI scene analysis...
-                <br />
-                <span className="text-sm">
+            <div className="flex items-center justify-center bg-white rounded-xl border border-dashed border-gray-300 p-12 min-h-[300px]">
+              <div className="text-center space-y-3">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-purple-50 mb-2">
+                  <Activity className="w-7 h-7 text-purple-400" />
+                </div>
+                <p className="text-gray-600 font-medium">Awaiting AI scene analysis</p>
+                <p className="text-sm text-gray-400">
                   Start the camera and ensure the classroom is visible.
-                </span>
-              </p>
+                </p>
+              </div>
             </div>
           )}
         </div>
 
         {/* Engagement Chart - Full Width */}
         <EngagementChart data={engagementData} maxDataPoints={50} />
-      </div>
+      </main>
     </div>
   );
 };

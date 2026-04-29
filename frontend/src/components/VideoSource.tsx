@@ -259,7 +259,16 @@ export const VideoSource: React.FC<VideoSourceProps> = ({
     <Card className="p-6">
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold">Video Source</h2>
+          <h2 className="text-xl font-bold text-gray-900">Video Source</h2>
+          {isStreaming && (
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-red-600">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+              </span>
+              <span>LIVE</span>
+            </span>
+          )}
         </div>
 
         <Tabs value={sourceType} onValueChange={handleSourceChange}>
@@ -381,7 +390,7 @@ export const VideoSource: React.FC<VideoSourceProps> = ({
           </Alert>
         )}
 
-        <div className="relative bg-black rounded-lg overflow-hidden aspect-video">
+        <div className="relative bg-gray-900 rounded-xl overflow-hidden aspect-video ring-1 ring-gray-800">
           <video
             ref={videoRef}
             autoPlay={sourceType === 'webcam'}
@@ -391,17 +400,25 @@ export const VideoSource: React.FC<VideoSourceProps> = ({
           />
           {!isStreaming && (
             <div className="absolute inset-0 flex items-center justify-center text-white bg-gray-900">
-              <div className="text-center">
-                <VideoOff className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">
+              <div className="text-center space-y-3">
+                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-800">
+                  <VideoOff className="w-8 h-8 opacity-50" />
+                </div>
+                <p className="text-base font-medium opacity-80">
                   {sourceType === 'webcam' ? 'Camera Off' : 'No Video Selected'}
                 </p>
-                <p className="text-sm opacity-70 mt-2">
-                  {sourceType === 'webcam' 
-                    ? 'Click "Start Camera" to begin' 
+                <p className="text-xs opacity-50">
+                  {sourceType === 'webcam'
+                    ? 'Click "Start Camera" to begin'
                     : 'Click "Choose Video" to upload'}
                 </p>
               </div>
+            </div>
+          )}
+          {isStreaming && isConnected && (
+            <div className="absolute top-2 right-2 bg-black/50 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 inline-block" />
+              <span>Sending frames</span>
             </div>
           )}
         </div>

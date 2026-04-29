@@ -24,12 +24,12 @@ interface SceneAnalysisDisplayProps {
   nextAnalysisIn?: number;
 }
 
-const engagementColors: Record<string, { bg: string; text: string; bar: string }> = {
-  very_high: { bg: 'bg-emerald-100', text: 'text-emerald-800', bar: 'bg-emerald-500' },
-  high: { bg: 'bg-green-100', text: 'text-green-800', bar: 'bg-green-500' },
-  medium: { bg: 'bg-yellow-100', text: 'text-yellow-800', bar: 'bg-yellow-500' },
-  low: { bg: 'bg-orange-100', text: 'text-orange-800', bar: 'bg-orange-500' },
-  very_low: { bg: 'bg-red-100', text: 'text-red-800', bar: 'bg-red-500' },
+const engagementColors: Record<string, { bg: string; text: string; bar: string; stroke: string }> = {
+  very_high: { bg: 'bg-emerald-100', text: 'text-emerald-800', bar: 'bg-emerald-500', stroke: '#10b981' },
+  high: { bg: 'bg-green-100', text: 'text-green-800', bar: 'bg-green-500', stroke: '#22c55e' },
+  medium: { bg: 'bg-yellow-100', text: 'text-yellow-800', bar: 'bg-yellow-500', stroke: '#eab308' },
+  low: { bg: 'bg-orange-100', text: 'text-orange-800', bar: 'bg-orange-500', stroke: '#f97316' },
+  very_low: { bg: 'bg-red-100', text: 'text-red-800', bar: 'bg-red-500', stroke: '#ef4444' },
 };
 
 const activityLabels: Record<string, string> = {
@@ -64,17 +64,28 @@ export function SceneAnalysisDisplay({
   // If processing, show lightweight update
   if (status === 'processing') {
     return (
-      <Card className="p-6">
+      <Card className="p-6 animate-in fade-in duration-200">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Clock className="w-5 h-5 text-blue-500 animate-pulse" />
-            <span className="text-sm text-gray-600">
-              Processing... Next AI analysis in {nextAnalysisIn} frames
-            </span>
+            <div className="relative">
+              <Clock className="w-5 h-5 text-blue-500" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-700">Analyzing frames…</p>
+              <p className="text-xs text-gray-500">
+                Next full analysis in {nextAnalysisIn} frames
+              </p>
+            </div>
           </div>
-          <Badge variant="outline" className="bg-blue-50">
+          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
             Frame {frameCount}
           </Badge>
+        </div>
+        {/* Skeleton shimmer */}
+        <div className="mt-4 space-y-2 animate-pulse">
+          <div className="h-3 bg-gray-200 rounded w-3/4" />
+          <div className="h-3 bg-gray-200 rounded w-1/2" />
         </div>
       </Card>
     );
@@ -141,20 +152,42 @@ export function SceneAnalysisDisplay({
 
       {/* Engagement Card */}
       <Card className="p-6">
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-gray-700">Engagement Level</h4>
-            <Badge className={`${engagementColor.bg} ${engagementColor.text} border-0`}>
-              {engagementLevel.replace('_', ' ').toUpperCase()}
+            <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Engagement Level</h4>
+            <Badge className={`${engagementColor.bg} ${engagementColor.text} border-0 font-semibold`}>
+              {engagementLevel.replace(/_/g, ' ').toUpperCase()}
             </Badge>
           </div>
-          <Progress 
-            value={engagementPercentage} 
-            className={`h-3 ${engagementColor.bar}`}
-          />
-          <p className="text-sm text-gray-600">
-            {engagementPercentage}% engaged
-          </p>
+          {/* Radial gauge */}
+          <div className="flex items-center gap-6">
+            <div className="relative w-20 h-20 flex-shrink-0">
+              <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" strokeWidth="3" />
+                <circle
+                  cx="18" cy="18" r="15.9" fill="none"
+                  stroke={engagementColor.bar.replace('bg-', '').replace('-500', '')}
+                  strokeWidth="3"
+                  strokeDasharray={`${engagementPercentage} 100`}
+                  strokeLinecap="round"
+                  className="transition-all duration-700"
+                  style={{ stroke: engagementColor.stroke }}
+                />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-base font-bold text-gray-900">
+                {engagementPercentage}%
+              </span>
+            </div>
+            <div className="flex-1 space-y-2">
+              <Progress
+                value={engagementPercentage}
+                className="h-2.5"
+              />
+              <p className="text-xs text-gray-500">
+                {engagementPercentage}% of students actively engaged
+              </p>
+            </div>
+          </div>
         </div>
       </Card>
 
@@ -164,12 +197,15 @@ export function SceneAnalysisDisplay({
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Lightbulb className="w-5 h-5 text-amber-500" />
-              <h4 className="font-medium text-gray-900">Behavioral Insights</h4>
+              <h4 className="font-semibold text-gray-900">Behavioral Insights</h4>
             </div>
             <ul className="space-y-2">
               {behavioralInsights.map((insight, index) => (
-                <li key={index} className="flex items-start gap-2 text-sm text-gray-700">
-                  <span className="text-amber-500 mt-1">•</span>
+                <li
+                  key={insight.slice(0, 40)}
+                  className="flex items-start gap-2.5 text-sm text-gray-700 bg-amber-50 rounded-lg px-3 py-2"
+                >
+                  <span className="text-amber-500 font-bold mt-0.5">→</span>
                   <span>{insight}</span>
                 </li>
               ))}
@@ -181,13 +217,18 @@ export function SceneAnalysisDisplay({
       {/* Teacher Recommendation */}
       {teacherRecommendation && (
         <Alert className={
-          teacherRecommendation.toLowerCase().includes('no intervention') 
-            ? 'border-green-200 bg-green-50' 
-            : 'border-blue-200 bg-blue-50'
+          teacherRecommendation.toLowerCase().includes('no intervention')
+            ? 'border-green-200 bg-green-50'
+            : 'border-indigo-200 bg-indigo-50'
         }>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription className="ml-2">
-            <strong>Recommendation:</strong> {teacherRecommendation}
+          <AlertCircle className={`h-4 w-4 ${
+            teacherRecommendation.toLowerCase().includes('no intervention')
+              ? 'text-green-600'
+              : 'text-indigo-600'
+          }`} />
+          <AlertDescription className="ml-2 text-sm">
+            <strong className="font-semibold">Recommendation: </strong>
+            {teacherRecommendation}
           </AlertDescription>
         </Alert>
       )}
