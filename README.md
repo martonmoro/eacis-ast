@@ -269,7 +269,7 @@ This project is for educational purposes as part of MSc Software Technology cour
 
 ## 👥 Authors
 
-Emanuel Nzinga Maimona
+Emanuel Nzinga Maimona, Cherif Yassine, Samson Balint Ferenc, Zsoldos Daniel, Marton Moro
 ELTE MSc 
 Software Technology I
 
